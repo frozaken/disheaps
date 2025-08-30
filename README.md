@@ -6,25 +6,25 @@
 
 **Disheap** is a high-performance, distributed priority messaging system built with Raft consensus for strong consistency guarantees. It provides exactly-once delivery, distributed transactions, and real-time streaming capabilities.
 
-## 🚀 Features
+## Features
 
 ### Core Capabilities
-- **🏛️ Distributed Consensus** - Raft-based leader election and log replication
-- **📊 Priority Queues** - Message ordering with configurable priority levels
-- **🔄 Exactly-Once Delivery** - Strong consistency guarantees with message acknowledgments
-- **⚡ Real-Time Streaming** - Bidirectional gRPC streaming for live message consumption
-- **🔐 Distributed Transactions** - Two-phase commit protocol for atomic operations
-- **📈 Horizontal Scaling** - Multi-partition topics with automatic load balancing
+- **Distributed Consensus** - Raft-based leader election and log replication
+- **Priority Queues** - Message ordering with configurable priority levels
+- **Exactly-Once Delivery** - Strong consistency guarantees with message acknowledgments
+- **Real-Time Streaming** - Bidirectional gRPC streaming for live message consumption
+- **Distributed Transactions** - Two-phase commit protocol for atomic operations
+- **Horizontal Scaling** - Multi-partition topics with automatic load balancing
 
 ### Production Ready
-- **🛡️ Fault Tolerance** - Automatic failover and recovery
-- **💾 Persistent Storage** - BadgerDB for high-performance data persistence
-- **📊 Monitoring** - Prometheus metrics and Grafana dashboards
-- **🐳 Container Native** - Docker and Kubernetes ready
-- **🔍 Observability** - Structured logging and health checks
-- **🧪 Comprehensive Testing** - End-to-end integration test suite
+- **Fault Tolerance** - Automatic failover and recovery
+- **Persistent Storage** - BadgerDB for high-performance data persistence
+- **Monitoring** - Prometheus metrics and Grafana dashboards
+- **Container Native** - Docker and Kubernetes ready
+- **Observability** - Structured logging and health checks
+- **Comprehensive Testing** - End-to-end integration test suite
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -59,7 +59,7 @@
 | **[disheap-api](disheap-api/)** | REST API gateway for HTTP clients | Go, HTTP, JSON |
 | **[disheap-frontend](disheap-frontend/)** | Web dashboard for monitoring and management | React, TypeScript, Tailwind |
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -136,25 +136,25 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-## 📖 Documentation
+## Documentation
 
 ### Getting Started
-- [🐳 Docker Setup Guide](DOCKER_README.md)
-- [🧪 Running Tests](tests/README.md)
-- [🔧 Development Setup](scripts/setup-dev-environment.sh)
+- [Docker Setup Guide](DOCKER_README.md)
+- [Running Tests](tests/README.md)
+- [Development Setup](scripts/setup-dev-environment.sh)
 
 ### Components
-- [🏛️ Raft Engine](disheap-engine/pkg/raft/README.md)
-- [🐍 Python SDK](disheap-python/README.md)
-- [🌐 REST API](disheap-api/README.md)
-- [💻 Web Frontend](disheap-frontend/README.md)
+- [Raft Engine](disheap-engine/pkg/raft/README.md)
+- [Python SDK](disheap-python/README.md)
+- [REST API](disheap-api/README.md)
+- [Web Frontend](disheap-frontend/README.md)
 
 ### Advanced Topics
-- [📊 Spine Index](disheap-engine/pkg/spine/README.md)
-- [🔄 Transactions](disheap-engine/pkg/txn/README.md)
-- [📦 Message Delivery](disheap-engine/pkg/delivery/README.md)
+- [Spine Index](disheap-engine/pkg/spine/README.md)
+- [Transactions](disheap-engine/pkg/txn/README.md)
+- [Message Delivery](disheap-engine/pkg/delivery/README.md)
 
-## 🧪 Testing
+## Testing
 
 Run the comprehensive test suite:
 
@@ -170,7 +170,7 @@ python tests/integration/test_disconnect_handling.py
 python tests/integration/test_raft_replication.py
 ```
 
-## 📊 Monitoring
+## Monitoring
 
 Access the monitoring dashboard:
 
@@ -183,7 +183,7 @@ Key metrics:
 - Cluster topology
 - Storage utilization
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -213,7 +213,7 @@ services:
       - disheap-data-1:/home/disheap/data
 ```
 
-## 🚀 Deployment
+## Deployment
 
 ### Docker Swarm
 
@@ -235,7 +235,7 @@ kubectl apply -f deploy/kubernetes/
 - **Monitoring**: Configure Prometheus scraping
 - **Backup**: Regular BadgerDB snapshots
 
-## 🛠️ Development
+## Development
 
 ### Development Setup
 
@@ -251,22 +251,16 @@ cd disheap-python && poetry run pytest
 docker compose build
 ```
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Dependencies
 
 - [HashiCorp Raft](https://github.com/hashicorp/raft) - Consensus protocol implementation
 - [BadgerDB](https://github.com/dgraph-io/badger) - High-performance key-value store
 - [gRPC](https://grpc.io/) - High-performance RPC framework
 
-## 📞 Support
-
-- **Issues**: [GitHub Issues](https://github.com/frozaken/disheaps/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/frozaken/disheaps/discussions)
-- **Documentation**: [Wiki](https://github.com/frozaken/disheaps/wiki)
-
 ---
 
-**Built with ❤️ for distributed systems that need strong consistency guarantees.**
+A distributed priority messaging system with strong consistency guarantees.
