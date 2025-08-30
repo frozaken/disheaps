@@ -1,0 +1,287 @@
+syntax = "proto3";
+
+package disheap.v1;
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/disheap/disheap/proto/disheap/v1;disheapv1";
+
+// Main Disheap service
+service Disheap {
+  // Admin operations
+  rpc MakeHeap(MakeHeapReq) returns (MakeHeapResp);
+  rpc DeleteHeap(DeleteHeapReq) returns (google.protobuf.Empty);
+  rpc UpdateHeapConfig(UpdateHeapConfigReq) returns (google.protobuf.Empty);
+  rpc ListHeaps(ListHeapsReq) returns (ListHeapsResp);
+  rpc Stats(StatsReq) returns (StatsResp);
+  rpc Purge(PurgeReq) returns (google.protobuf.Empty);
+  rpc MoveToDLQ(MoveToDlqReq) returns (google.protobuf.Empty);
+
+  // Data operations
+  rpc Enqueue(EnqueueReq) returns (EnqueueResp);
+  rpc EnqueueBatch(EnqueueBatchReq) returns (EnqueueBatchResp);
+  rpc PopStream(stream PopOpen) returns (stream PopItem);
+  rpc Ack(AckReq) returns (google.protobuf.Empty);
+  rpc Nack(NackReq) returns (google.protobuf.Empty);
+  rpc Extend(ExtendReq) returns (google.protobuf.Empty);
+  rpc Peek(PeekReq) returns (PeekResp);
+}
+
+// Heap mode enumeration
+enum Mode {
+  MIN = 0;
+  MAX = 1;
+}
+
+// Make heap request
+message MakeHeapReq {
+  string topic = 1;
+  Mode mode = 2;
+  uint32 partitions = 3;
+  uint32 replication_factor = 4;
+  uint32 top_k_bound = 5;
+  google.protobuf.Duration retention_time = 6;
+  google.protobuf.Duration visibility_timeout_default = 7;
+  uint32 max_retries_default = 8;
+  uint64 max_payload_bytes = 9;
+  bool compression_enabled = 10;
+  DLQPolicy dlq_policy = 11;
+}
+
+// Make heap response
+message MakeHeapResp {
+  string topic = 1;
+  string heap_id = 2;
+}
+
+// Delete heap request
+message DeleteHeapReq {
+  string topic = 1;
+  bool force = 2;
+  string confirmation_token = 3;
+}
+
+// Update heap config request
+message UpdateHeapConfigReq {
+  string topic = 1;
+  optional google.protobuf.Duration retention_time = 2;
+  optional google.protobuf.Duration visibility_timeout_default = 3;
+  optional uint32 max_retries_default = 4;
+  optional uint64 max_payload_bytes = 5;
+  optional bool compression_enabled = 6;
+  optional DLQPolicy dlq_policy = 7;
+}
+
+// List heaps request
+message ListHeapsReq {
+  uint32 page_size = 1;
+  string page_token = 2;
+}
+
+// List heaps response
+message ListHeapsResp {
+  repeated HeapInfo heaps = 1;
+  string next_page_token = 2;
+}
+
+// Heap information
+message HeapInfo {
+  string topic = 1;
+  Mode mode = 2;
+  uint32 partitions = 3;
+  uint32 replication_factor = 4;
+  uint32 top_k_bound = 5;
+  google.protobuf.Duration retention_time = 6;
+  google.protobuf.Duration visibility_timeout_default = 7;
+  uint32 max_retries_default = 8;
+  uint64 max_payload_bytes = 9;
+  bool compression_enabled = 10;
+  DLQPolicy dlq_policy = 11;
+  google.protobuf.Timestamp created_at = 12;
+  google.protobuf.Timestamp updated_at = 13;
+  HeapStats stats = 14;
+}
+
+// DLQ Policy
+message DLQPolicy {
+  bool enabled = 1;
+  google.protobuf.Duration retention_time = 2;
+}
+
+// Heap statistics
+message HeapStats {
+  uint64 total_messages = 1;
+  uint64 inflight_messages = 2;
+  uint64 dlq_messages = 3;
+  uint64 total_enqueues = 4;
+  uint64 total_pops = 5;
+  uint64 total_acks = 6;
+  uint64 total_nacks = 7;
+  uint64 total_retries = 8;
+  uint64 total_timeouts = 9;
+  map<uint32, PartitionStats> partition_stats = 10;
+}
+
+// Partition statistics
+message PartitionStats {
+  uint32 partition_id = 1;
+  uint64 messages = 2;
+  uint64 inflight = 3;
+  string leader_node = 4;
+  repeated string replica_nodes = 5;
+  bool is_healthy = 6;
+}
+
+// Stats request
+message StatsReq {
+  optional string topic = 1;
+  optional uint32 partition_id = 2;
+}
+
+// Stats response
+message StatsResp {
+  HeapStats global_stats = 1;
+  map<string, HeapStats> topic_stats = 2;
+}
+
+// Purge request
+message PurgeReq {
+  string topic = 1;
+  optional uint32 partition_id = 2;
+  bool force = 3;
+  string confirmation_token = 4;
+}
+
+// Move to DLQ request
+message MoveToDlqReq {
+  string topic = 1;
+  string message_id = 2;
+  optional string reason = 3;
+}
+
+// Enqueue request
+message EnqueueReq {
+  string topic = 1;
+  bytes payload = 2;
+  int64 priority = 3;
+  optional string partition_key = 4;
+  optional string producer_id = 5;
+  optional uint64 epoch = 6;
+  optional uint64 sequence = 7;
+  optional uint32 max_retries = 8;
+  optional google.protobuf.Duration not_before = 9;
+}
+
+// Enqueue response
+message EnqueueResp {
+  string message_id = 1;
+  bool duplicate = 2;
+  uint32 partition_id = 3;
+}
+
+// Batch enqueue request
+message EnqueueBatchReq {
+  repeated EnqueueReq requests = 1;
+  optional string transaction_id = 2;
+}
+
+// Batch enqueue response
+message EnqueueBatchResp {
+  repeated EnqueueResp responses = 1;
+  string transaction_id = 2;
+  bool all_duplicates = 3;
+}
+
+// Pop stream opening message
+message PopOpen {
+  oneof kind {
+    FlowControl flow_control = 1;
+    PopFilter filter = 2;
+  }
+}
+
+// Flow control message
+message FlowControl {
+  uint32 credits = 1;
+}
+
+// Pop filter (for topic/partition filtering)
+message PopFilter {
+  string topic = 1;
+  repeated uint32 partition_ids = 2;
+  optional google.protobuf.Duration visibility_timeout = 3;
+}
+
+// Popped item
+message PopItem {
+  string message_id = 1;
+  string topic = 2;
+  uint32 partition_id = 3;
+  bytes payload = 4;
+  int64 priority = 5;
+  google.protobuf.Timestamp enqueued_time = 6;
+  string lease_token = 7;
+  google.protobuf.Timestamp lease_deadline = 8;
+  uint32 attempts = 9;
+  uint32 max_retries = 10;
+  optional string producer_id = 11;
+  optional uint64 epoch = 12;
+  optional uint64 sequence = 13;
+}
+
+// Ack request
+message AckReq {
+  string topic = 1;
+  string message_id = 2;
+  string lease_token = 3;
+}
+
+// Nack request
+message NackReq {
+  string topic = 1;
+  string message_id = 2;
+  string lease_token = 3;
+  optional google.protobuf.Duration backoff_override = 4;
+  optional string reason = 5;
+}
+
+// Extend lease request
+message ExtendReq {
+  string topic = 1;
+  string lease_token = 2;
+  google.protobuf.Duration extension = 3;
+}
+
+// Peek request
+message PeekReq {
+  string topic = 1;
+  optional uint32 partition_id = 2;
+  optional uint32 limit = 3;
+  bool include_dlq = 4;
+}
+
+// Peek response
+message PeekResp {
+  repeated PeekItem items = 1;
+  bool has_more = 2;
+}
+
+// Peek item (non-leased view of message)
+message PeekItem {
+  string message_id = 1;
+  string topic = 2;
+  uint32 partition_id = 3;
+  bytes payload = 4;
+  int64 priority = 5;
+  google.protobuf.Timestamp enqueued_time = 6;
+  uint32 attempts = 7;
+  uint32 max_retries = 8;
+  bool is_leased = 9;
+  optional google.protobuf.Timestamp lease_deadline = 10;
+  bool in_dlq = 11;
+  optional string producer_id = 12;
+  optional uint64 epoch = 13;
+  optional uint64 sequence = 14;
+}

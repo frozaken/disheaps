@@ -1,0 +1,1 @@
+export { ClusterDashboard as Dashboard } from './ClusterDashboard';

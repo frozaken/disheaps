@@ -1,0 +1,143 @@
+services:
+  # Engine 1 - Bootstrap node (initial leader)
+  disheap-engine-1:
+    build:
+      context: .
+      dockerfile: ./disheap-engine/Dockerfile
+      target: production
+    container_name: disheap-engine-1
+    environment:
+      NODE_ID: "n1"
+      ENGINE_BIND_ADDRESS: "0.0.0.0:9090"
+      ENGINE_HTTP_BIND_ADDRESS: "0.0.0.0:8080"
+      ENGINE_LOG_LEVEL: "info"
+      ENGINE_LOG_FORMAT: "json"
+      
+      STORAGE_TYPE: "badger"
+      STORAGE_PATH: "/var/lib/disheap/badger"
+      STORAGE_SYNC_WRITES: "true"
+      
+      # Bootstrap node configuration
+      SINGLE_NODE: "false"
+      BOOTSTRAP: "true"
+      RAFT_BIND: "0.0.0.0:8300"
+      RAFT_ADVERTISE: "disheap-engine-1:8300"
+      
+      ENGINE_MAX_MESSAGE_SIZE: "4194304"
+      ENGINE_DEFAULT_VISIBILITY_TIMEOUT: "300s"
+      ENGINE_MAX_PARTITIONS_PER_HEAP: "100"
+      ENGINE_CLEANUP_INTERVAL: "60s"
+      
+      METRICS_ENABLED: "true"
+      METRICS_BIND_ADDRESS: "0.0.0.0:9091"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health | grep -q '\"is_leader\":true'"]
+      interval: 3s
+      timeout: 2s
+      retries: 20
+      start_period: 5s
+    ports:
+      - "9090:9090"  # gRPC
+      - "8080:8080"  # HTTP (when implemented)
+      - "9091:9091"  # Metrics
+    volumes:
+      - engine1_data:/var/lib/disheap
+    networks:
+      - disheap-cluster
+
+  # Engine 2 - Follower node
+  disheap-engine-2:
+    build:
+      context: .
+      dockerfile: ./disheap-engine/Dockerfile  
+      target: production
+    container_name: disheap-engine-2
+    environment:
+      NODE_ID: "n2"
+      ENGINE_BIND_ADDRESS: "0.0.0.0:9090"
+      ENGINE_HTTP_BIND_ADDRESS: "0.0.0.0:8080"
+      ENGINE_LOG_LEVEL: "info"
+      ENGINE_LOG_FORMAT: "json"
+      
+      STORAGE_TYPE: "badger"
+      STORAGE_PATH: "/var/lib/disheap/badger"
+      STORAGE_SYNC_WRITES: "true"
+      
+      # Follower node configuration
+      SINGLE_NODE: "false"
+      BOOTSTRAP: "false"
+      RAFT_JOIN_ADDRESSES: "disheap-engine-1:8300"
+      RAFT_BIND: "0.0.0.0:8300"
+      RAFT_ADVERTISE: "disheap-engine-2:8300"
+      
+      ENGINE_MAX_MESSAGE_SIZE: "4194304"
+      ENGINE_DEFAULT_VISIBILITY_TIMEOUT: "300s"
+      ENGINE_MAX_PARTITIONS_PER_HEAP: "100"
+      ENGINE_CLEANUP_INTERVAL: "60s"
+      
+      METRICS_ENABLED: "true"
+      METRICS_BIND_ADDRESS: "0.0.0.0:9091"
+    ports:
+      - "9092:9090"  # gRPC
+      - "8082:8080"  # HTTP
+      - "9093:9091"  # Metrics
+    volumes:
+      - engine2_data:/var/lib/disheap
+    depends_on:
+      disheap-engine-1:
+        condition: service_healthy
+    networks:
+      - disheap-cluster
+
+  # Engine 3 - Follower node
+  disheap-engine-3:
+    build:
+      context: .
+      dockerfile: ./disheap-engine/Dockerfile
+      target: production
+    container_name: disheap-engine-3
+    environment:
+      NODE_ID: "n3"
+      ENGINE_BIND_ADDRESS: "0.0.0.0:9090"
+      ENGINE_HTTP_BIND_ADDRESS: "0.0.0.0:8080" 
+      ENGINE_LOG_LEVEL: "info"
+      ENGINE_LOG_FORMAT: "json"
+      
+      STORAGE_TYPE: "badger"
+      STORAGE_PATH: "/var/lib/disheap/badger" 
+      STORAGE_SYNC_WRITES: "true"
+      
+      # Follower node configuration
+      SINGLE_NODE: "false"
+      BOOTSTRAP: "false"
+      RAFT_JOIN_ADDRESSES: "disheap-engine-1:8300"
+      RAFT_BIND: "0.0.0.0:8300"
+      RAFT_ADVERTISE: "disheap-engine-3:8300"
+      
+      ENGINE_MAX_MESSAGE_SIZE: "4194304"
+      ENGINE_DEFAULT_VISIBILITY_TIMEOUT: "300s"
+      ENGINE_MAX_PARTITIONS_PER_HEAP: "100"
+      ENGINE_CLEANUP_INTERVAL: "60s"
+      
+      METRICS_ENABLED: "true"
+      METRICS_BIND_ADDRESS: "0.0.0.0:9091"
+    ports:
+      - "9094:9090"  # gRPC
+      - "8084:8080"  # HTTP
+      - "9095:9091"  # Metrics
+    volumes:
+      - engine3_data:/var/lib/disheap
+    depends_on:
+      disheap-engine-1:
+        condition: service_healthy
+    networks:
+      - disheap-cluster
+
+volumes:
+  engine1_data:
+  engine2_data:
+  engine3_data:
+
+networks:
+  disheap-cluster:
+    driver: bridge
